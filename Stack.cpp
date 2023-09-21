@@ -8,68 +8,145 @@ const char * nameFile2 = "Stack.cpp";
 
 const Elem_t POISON = -777;
 
-ERROR stackCtor(Stack * stk)
+error stackCtor(Stack * stk)
 {
+    const char * nameFunction = "stackCtor()";
+
     assert(stk != NULL);
 
     stk -> sizeStack = 0;
     stk -> capacity = 5;
     stk -> data = (Elem_t *)calloc(stk -> capacity, sizeof(Elem_t));
 
-    assert(stk -> data != NULL);
+    if(error err = stackCheck(stk))
+    {
+        stackDump(stk, nameFile2, nameFunction, 22);
+        return err;
+    }
 
-    for(size_t i = 0; i < stk -> capacity; i++)
+    for(int i = 0; i < stk -> capacity; i++)
+    {
+        assert(0 <= i && i< stk -> capacity);
+
         stk -> data[i] = POISON;
-
+    }
     return NOERROR;
 }
 
-ERROR stackDtor(Stack * stk)
+error stackDtor(Stack * stk)
 {
-    assert(stk != NULL);
+    const char * nameFunction = "stackDtor()";
 
-    stk -> sizeStack = 0;
-    stk -> capacity = 0;
+    if(error err = stackCheck(stk))
+    {
+        stackDump(stk, nameFile2, nameFunction, 33);
+        return err;
+    }
+
+    stk -> sizeStack = -1;
+    stk -> capacity = -1;
     free(stk -> data);
 
     return NOERROR;
 }
 
-ERROR stackCheck(const Stack * stk)
+
+error stackRealloc(Stack * stk , change_capacity prm)
+{
+    const char * nameFunction = "stackRealloc()";
+
+    if(error err = stackCheck(stk))
+    {
+        stackDump(stk, nameFile2, nameFunction, 57);
+        return err;
+    }
+
+
+    if(prm == UP)
+        stk -> capacity *= 2;
+
+    else
+        stk -> capacity /= 2;
+
+    stk -> data = (Elem_t *)realloc(stk -> data, stk -> capacity*sizeof(Elem_t));
+
+    if(error err = stackCheck(stk))
+    {
+        stackDump(stk, nameFile2, nameFunction, 72);
+        return err;
+    }
+
+    for(int i = stk -> sizeStack; i < stk -> capacity; i++)
+    {
+        assert(0 <= i && i< stk -> capacity);
+
+        stk -> data[i] = POISON;
+    }
+    return NOERROR;
+}
+
+error stackPush(Stack * stk, Elem_t value)
+{
+    const char * nameFunction = "stackPush()";
+
+    if(error err = stackCheck(stk))
+    {
+        stackDump(stk, nameFile2, nameFunction, 84);
+        return err;
+    }
+
+    if(stk -> sizeStack == stk -> capacity)
+        stackRealloc(stk, UP);
+
+    stk -> data[stk -> sizeStack++] = value;
+
+    return NOERROR;
+
+}
+
+error stackPop(Stack * stk, Elem_t * RetValue)
+{
+    const char * nameFunction = "stackPush()";
+
+    if(error err = stackCheck(stk))
+    {
+        stackDump(stk, nameFile2, nameFunction, 104);
+        return err;
+    }
+
+    * RetValue = stk -> data[--stk -> sizeStack];
+
+    stk -> data[stk -> sizeStack] = POISON;
+
+    if(2*stk -> sizeStack < stk -> capacity)
+        stackRealloc(stk, DOWN);
+
+    return NOERROR;
+
+}
+
+error stackCheck(const Stack * stk)
 {
     int err = NOERROR;
 
     if(!stk)                                err |= ENOSTK;
     if(!stk -> data)                        err |= ENODATA;
-    if(stk -> sizeStack > stk -> capacity) err |= ESIZEOUT;
-    if(!stk -> capacity)                    err |= ECAPZERO;
+    if(stk -> sizeStack > stk -> capacity)  err |= ESIZEOUT;
+    if(stk -> capacity <= 0)                err |= ECAPZERO;
+    if(stk -> sizeStack < 0)                err |= ESIZE;
 
-    return (ERROR)err;
+    return (error)err;
 }
 
-ERROR stackRealloc(Stack * stk)
-{
-    assert(stk != NULL);
-
-    stk -> capacity = 2*stk -> capacity;
-
-    stk -> data = (Elem_t *)realloc(stk -> data, stk -> capacity*sizeof(Elem_t));
-
-    assert(stk -> data != NULL);
-
-    return NOERROR;
-}
-
-void stackDump(Stack * stk, const char * nameFile, const char * nameFunction, const size_t line, ERROR err)
+void stackDump(Stack * stk, const char * nameFile, const char * nameFunction, const size_t line)
 {
     printf("called from %s %s(%d)\n", nameFile, nameFunction, line);
-    printf("Error = %d\n", err);
     printf("stack[%p]\n", stk);
     printf("size = %d\n", stk -> sizeStack);
     printf("capacity = %d\n", stk -> capacity);
     printf("data[%p]\n", stk -> data);
 
-    for(size_t i = 0; i < stk -> capacity; i++)
+    for(int i = 0; i < stk -> capacity; i++)
     {
         if(stk -> data[0] == POISON)
             printf("[%d] = %d(POISON)\n", i, stk -> data[i]);
@@ -79,34 +156,5 @@ void stackDump(Stack * stk, const char * nameFile, const char * nameFunction, co
     }
 
     printf("\n");
-
-}
-
-ERROR stackPush(Stack * stk, Elem_t value)
-{
-    const char * nameFunction = "stackPush()";
-
-    ERROR err = stackCheck(stk);
-    if(err)
-        stackDump(stk, nameFile2, nameFunction, 85, err);
-
-    if(stk -> sizeStack >= stk -> capacity)
-        stackRealloc(stk);
-
-    stk -> data[stk -> sizeStack++] = value;
-
-    return NOERROR;
-
-}
-
-ERROR stackPop(Stack * stk, Elem_t * RetValue)
-{
-    assert(stk != NULL);
-
-    * RetValue = stk -> data[--stk -> sizeStack];
-
-    stk -> data[stk -> sizeStack] = POISON;
-
-    return NOERROR;
 
 }
