@@ -8,14 +8,20 @@ struct Stack
     Elem_t * data = 0;
     int sizeStack = 0;
     int capacity = 0;
+    char * nameStack = "";
+    int line = 0;
+    char * nameFile = "";
+    char * nameFunc = "";
+
 };
+
 
 enum error {NOERROR = 0, ENOSTK = 1, ENODATA = 2, ESIZEOUT = 4, ECAPZERO = 8, ESIZE = 16};
 
 enum change_capacity {UP, DOWN};
 
 
-error stackCtor(Stack * stk);
+error stackCtor(Stack * stk, const char * nameStack, const size_t line, const char * nameFile, const char * nameFunc);
 error stackDtor(Stack * stk);
 error stackCheck(const Stack * stk);
 error stackRealloc(Stack * stk, change_capacity prm);

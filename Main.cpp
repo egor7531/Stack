@@ -2,12 +2,16 @@
 
 #include "Stack.h"
 
-const char * nameFile1 = "Main.cpp";
+#define STACK_CTOR(stack) stackCtor((stack), #stack, __LINE__, __FILE__, __func__)
+
 
 int main()
 {
+    Stack stk;
 
-    Stack stk = {};
+    STACK_CTOR(&stk);
+
+    stackPush(&stk,1);
 
     stackDtor(&stk);
 

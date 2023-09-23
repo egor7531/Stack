@@ -4,23 +4,27 @@
 
 #include "Stack.h"
 
-const char * nameFile2 = "Stack.cpp";
+#define STACK_DUMP(stack) stackDump((stack), __FILE__, __func__, __LINE__)
 
 const Elem_t POISON = -777;
 
-error stackCtor(Stack * stk)
+error stackCtor(Stack * stk, const char * nameStack, const size_t line, const char * nameFile, const char * nameFunc);
 {
-    const char * nameFunction = "stackCtor()";
-
     assert(stk != NULL);
 
     stk -> sizeStack = 0;
     stk -> capacity = 5;
     stk -> data = (Elem_t *)calloc(stk -> capacity, sizeof(Elem_t));
 
+    stk -> nameStack = nameStack;
+    stk -> line = line;
+    stk -> nameFile = nameFile;
+    stk -> nameFunc = nameFunc;
+
+
     if(error err = stackCheck(stk))
     {
-        stackDump(stk, nameFile2, nameFunction, 22);
+        STACK_DUMP(stk);
         return err;
     }
 
@@ -35,11 +39,9 @@ error stackCtor(Stack * stk)
 
 error stackDtor(Stack * stk)
 {
-    const char * nameFunction = "stackDtor()";
-
     if(error err = stackCheck(stk))
     {
-        stackDump(stk, nameFile2, nameFunction, 33);
+        STACK_DUMP(stk);
         return err;
     }
 
@@ -53,11 +55,9 @@ error stackDtor(Stack * stk)
 
 error stackRealloc(Stack * stk , change_capacity prm)
 {
-    const char * nameFunction = "stackRealloc()";
-
     if(error err = stackCheck(stk))
     {
-        stackDump(stk, nameFile2, nameFunction, 57);
+        STACK_DUMP(stk);
         return err;
     }
 
@@ -72,7 +72,7 @@ error stackRealloc(Stack * stk , change_capacity prm)
 
     if(error err = stackCheck(stk))
     {
-        stackDump(stk, nameFile2, nameFunction, 72);
+        STACK_DUMP(stk);
         return err;
     }
 
@@ -87,11 +87,9 @@ error stackRealloc(Stack * stk , change_capacity prm)
 
 error stackPush(Stack * stk, Elem_t value)
 {
-    const char * nameFunction = "stackPush()";
-
     if(error err = stackCheck(stk))
     {
-        stackDump(stk, nameFile2, nameFunction, 84);
+        STACK_DUMP(stk);
         return err;
     }
 
@@ -106,11 +104,9 @@ error stackPush(Stack * stk, Elem_t value)
 
 error stackPop(Stack * stk, Elem_t * RetValue)
 {
-    const char * nameFunction = "stackPush()";
-
     if(error err = stackCheck(stk))
     {
-        stackDump(stk, nameFile2, nameFunction, 104);
+        STACK_DUMP(stk);
         return err;
     }
 
@@ -138,9 +134,10 @@ error stackCheck(const Stack * stk)
     return (error)err;
 }
 
-void stackDump(Stack * stk, const char * nameFile, const char * nameFunction, const size_t line)
+void stackDump(Stack * stk, const char * nameFile, const char * nameFunc, const size_t line)
 {
-    printf("called from %s %s(%d)\n", nameFile, nameFunction, line);
+    printf("'%s' from %s %s(%d)", stk -> nameStack, stk -> nameFile, stk -> nameFunc, stk -> line);
+    printf("called from %s %s(%d)\n", nameFile, nameFunc, line);
     printf("stack[%p]\n", stk);
     printf("size = %d\n", stk -> sizeStack);
     printf("capacity = %d\n", stk -> capacity);
