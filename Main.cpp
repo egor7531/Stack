@@ -2,16 +2,49 @@
 
 #include "Stack.h"
 
-#define STACK_CTOR(stack) stackCtor((stack), #stack, __LINE__, __FILE__, __func__)
+#define DEBUG
+
+//#define STACK_CTOR(stack) stackCtor((stack), #stack, __LINE__, __FILE__, __func__)
 
 
 int main()
 {
-    Stack stk;
+    myStack stk = {};
 
-    STACK_CTOR(&stk);
+    stackCtor(&stk);
 
-    stackPush(&stk,1);
+#ifdef DEBUG
+
+    while(true)
+    {
+        int comand = 0;
+
+        printf("comand = ");
+        scanf("%d", &comand);
+
+        if(comand == 1)
+        {
+            int num = 0;
+            printf("num = ");
+            scanf("%d", &num);
+            stackPush(&stk, num);
+        }
+
+        else if(comand == 2)
+        {
+            int num = 0;
+            stackPop(&stk, &num);
+            printf("num = %d\n", num);
+        }
+
+        else if(comand == 777)
+            break;
+
+        stackDump(&stk, __FILE__, __func__, __LINE__);
+
+    }
+
+#endif
 
     stackDtor(&stk);
 

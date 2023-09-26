@@ -4,75 +4,79 @@
 
 #include "Stack.h"
 
-#define STACK_DUMP(stack) stackDump((stack), __FILE__, __func__, __LINE__)
 
-const Elem_t POISON = -777;
-
-error stackCtor(Stack * stk, const char * nameStack, const size_t line, const char * nameFile, const char * nameFunc);
+error writeData(myStack * stk)
 {
-    assert(stk != NULL);
+    stk -> data = (elem_t *)calloc(stk -> capacity * sizeof(elem_t), 1);        //stk -> data = (elem_t *)((char *)calloc(stk -> capacity * sizeof(elem_t) + 2 * sizeof(canary_t), 1) + sizeof(canary_t));
 
-    stk -> sizeStack = 0;
-    stk -> capacity = 5;
-    stk -> data = (Elem_t *)calloc(stk -> capacity, sizeof(Elem_t));
-
-    stk -> nameStack = nameStack;
-    stk -> line = line;
-    stk -> nameFile = nameFile;
-    stk -> nameFunc = nameFunc;
-
+    assert(stk -> data != NULL);
 
     if(error err = stackCheck(stk))
     {
-        STACK_DUMP(stk);
+        stackDump(stk, __FILE__, __func__, __LINE__);
         return err;
     }
+
+    //*(((canary_t *)stk -> data) - 1) = NUMCANARY;
+    //((canary_t *)stk -> data)[stk -> capacity] = NUMCANARY;
 
     for(int i = 0; i < stk -> capacity; i++)
     {
-        assert(0 <= i && i< stk -> capacity);
+        assert(0 <= i && i < stk -> capacity);
 
         stk -> data[i] = POISON;
     }
-    return NOERROR;
+
+    return NO_ERR;
 }
 
-error stackDtor(Stack * stk)
+error stackCtor(myStack * stk)
 {
-    if(error err = stackCheck(stk))
-    {
-        STACK_DUMP(stk);
-        return err;
-    }
+    assert(stk != NULL);
+
+    //stk -> leftCanary = NUMCANARY;
+    //stk -> rightCanary = NUMCANARY;
+
+    stk -> sizeStack = 0;
+    stk -> capacity = 5;
+
+    writeData(stk);
+
+    return NO_ERR;
+}
+
+error stackDtor(myStack * stk)
+{
+    stackCheck(stk);
 
     stk -> sizeStack = -1;
     stk -> capacity = -1;
     free(stk -> data);
 
-    return NOERROR;
+    return NO_ERR;
 }
 
 
-error stackRealloc(Stack * stk , change_capacity prm)
+error stackRealloc(myStack * stk , capchange prm)
 {
     if(error err = stackCheck(stk))
     {
-        STACK_DUMP(stk);
+        stackDump(stk, __FILE__, __func__, __LINE__);
         return err;
     }
 
-
-    if(prm == UP)
+    if(prm == INCREASE)
         stk -> capacity *= 2;
 
     else
         stk -> capacity /= 2;
 
-    stk -> data = (Elem_t *)realloc(stk -> data, stk -> capacity*sizeof(Elem_t));
+    stk -> data = (elem_t *)(realloc(stk -> data, stk -> capacity * sizeof(elem_t));       //    stk -> data = (elem_t *)((char *)realloc(stk -> data - sizeof(canary_t), stk -> capacity * sizeof(elem_t) + 2 * sizeof(canary_t)) + sizeof(canary_t));
+
 
     if(error err = stackCheck(stk))
     {
-        STACK_DUMP(stk);
+        stackDump(stk, __FILE__, __func__, __LINE__);
         return err;
     }
 
@@ -82,31 +86,32 @@ error stackRealloc(Stack * stk , change_capacity prm)
 
         stk -> data[i] = POISON;
     }
-    return NOERROR;
+    return NO_ERR;
 }
 
-error stackPush(Stack * stk, Elem_t value)
+error stackPush(myStack * stk, elem_t value)
 {
+
     if(error err = stackCheck(stk))
     {
-        STACK_DUMP(stk);
+        stackDump(stk, __FILE__, __func__, __LINE__);
         return err;
     }
 
     if(stk -> sizeStack == stk -> capacity)
-        stackRealloc(stk, UP);
+        stackRealloc(stk, INCREASE);
 
     stk -> data[stk -> sizeStack++] = value;
 
-    return NOERROR;
+    return NO_ERR;
 
 }
 
-error stackPop(Stack * stk, Elem_t * RetValue)
+error stackPop(myStack * stk, elem_t * RetValue)
 {
     if(error err = stackCheck(stk))
     {
-        STACK_DUMP(stk);
+        stackDump(stk, __FILE__, __func__, __LINE__);
         return err;
     }
 
@@ -115,43 +120,8 @@ error stackPop(Stack * stk, Elem_t * RetValue)
     stk -> data[stk -> sizeStack] = POISON;
 
     if(2*stk -> sizeStack < stk -> capacity)
-        stackRealloc(stk, DOWN);
+        stackRealloc(stk, DECREASE);
 
-    return NOERROR;
-
-}
-
-error stackCheck(const Stack * stk)
-{
-    int err = NOERROR;
-
-    if(!stk)                                err |= ENOSTK;
-    if(!stk -> data)                        err |= ENODATA;
-    if(stk -> sizeStack > stk -> capacity)  err |= ESIZEOUT;
-    if(stk -> capacity <= 0)                err |= ECAPZERO;
-    if(stk -> sizeStack < 0)                err |= ESIZE;
-
-    return (error)err;
-}
-
-void stackDump(Stack * stk, const char * nameFile, const char * nameFunc, const size_t line)
-{
-    printf("'%s' from %s %s(%d)", stk -> nameStack, stk -> nameFile, stk -> nameFunc, stk -> line);
-    printf("called from %s %s(%d)\n", nameFile, nameFunc, line);
-    printf("stack[%p]\n", stk);
-    printf("size = %d\n", stk -> sizeStack);
-    printf("capacity = %d\n", stk -> capacity);
-    printf("data[%p]\n", stk -> data);
-
-    for(int i = 0; i < stk -> capacity; i++)
-    {
-        if(stk -> data[0] == POISON)
-            printf("[%d] = %d(POISON)\n", i, stk -> data[i]);
-
-        else
-            printf("*[%d] = %d\n", i, stk -> data[i]);
-    }
-
-    printf("\n");
+    return NO_ERR;
 
 }
