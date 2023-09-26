@@ -70,14 +70,18 @@ error stackRealloc(myStack * stk , capchange prm)
         return err;
     }
 
+    canary_t copyCanary = ((elem_t *)(stk -> data))[stk -> capacity];
+
     if(prm == INCREASE)
         stk -> capacity *= 2;
 
     else
         stk -> capacity /= 2;
 
-    stk -> data = (elem_t *)((char *)realloc(stk -> data - sizeof(canary_t), stk -> capacity * sizeof(elem_t) + 2 * sizeof(canary_t)) + sizeof(canary_t));
+    stk -> data = (elem_t *)(realloc((char *)stk -> data - sizeof(canary_t), stk -> capacity * sizeof(elem_t) + 2 * sizeof(canary_t)));
+    stk -> data = (elem_t *)((char *)(stk -> data) + sizeof(canary_t));
 
+    ((elem_t *)(stk -> data))[stk -> capacity] =copyCanary;
 
     if(error err = stackCheck(stk))
     {
@@ -85,12 +89,8 @@ error stackRealloc(myStack * stk , capchange prm)
         return err;
     }
 
-    for(int i = stk -> sizeStack; i < stk -> capacity; i++)
-    {
-        assert(0 <= i && i< stk -> capacity);
+    fillPoison(stk);
 
-        stk -> data[i] = POISON;
-    }
     return NO_ERR;
 }
 
@@ -124,7 +124,7 @@ error stackPop(myStack * stk, elem_t * RetValue)
 
     stk -> data[stk -> sizeStack] = POISON;
 
-    if(2*stk -> sizeStack < stk -> capacity)
+    if(2 * stk -> sizeStack < stk -> capacity)
         stackRealloc(stk, DECREASE);
 
     return NO_ERR;
