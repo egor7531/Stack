@@ -13,8 +13,8 @@ int main()
 
     stackCtor(&stk);
 
+  //  printf("%d %d %d %d %d\n", sizeof(canary_t), sizeof(canary_t *), sizeof(elem_t), sizeof(elem_t *), sizeof(char));
 #ifdef DEBUG
-
     while(true)
     {
         int comand = 0;

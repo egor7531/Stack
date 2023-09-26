@@ -5,11 +5,24 @@
 #include "Stack.h"
 
 
+error fillPoison(myStack * stk)
+{
+    for(int i = stk -> sizeStack; i < stk -> capacity; i++)
+    {
+        assert(0 <= i && i< stk -> capacity);
+
+        stk -> data[i] = POISON;
+    }
+
+    return NO_ERR;
+}
 error writeData(myStack * stk)
 {
-    stk -> data = (elem_t *)calloc(stk -> capacity * sizeof(elem_t), 1);        //stk -> data = (elem_t *)((char *)calloc(stk -> capacity * sizeof(elem_t) + 2 * sizeof(canary_t), 1) + sizeof(canary_t));
+    stk -> data = (elem_t *)(calloc(stk -> capacity * sizeof(elem_t) + 2 * sizeof(canary_t), sizeof(char)));
+    stk -> data = (elem_t *)((char *)(stk -> data) + sizeof(canary_t));
 
-    assert(stk -> data != NULL);
+    ((canary_t *)(stk -> data))[-1] = NUM_CANARY_DATA;
+    ((elem_t *)(stk -> data))[stk -> capacity] = NUM_CANARY_DATA;
 
     if(error err = stackCheck(stk))
     {
@@ -17,15 +30,7 @@ error writeData(myStack * stk)
         return err;
     }
 
-    //*(((canary_t *)stk -> data) - 1) = NUMCANARY;
-    //((canary_t *)stk -> data)[stk -> capacity] = NUMCANARY;
-
-    for(int i = 0; i < stk -> capacity; i++)
-    {
-        assert(0 <= i && i < stk -> capacity);
-
-        stk -> data[i] = POISON;
-    }
+    fillPoison(stk);
 
     return NO_ERR;
 }
@@ -34,8 +39,8 @@ error stackCtor(myStack * stk)
 {
     assert(stk != NULL);
 
-    //stk -> leftCanary = NUMCANARY;
-    //stk -> rightCanary = NUMCANARY;
+    stk -> leftCanary = NUM_CANARY_STACK;
+    stk -> rightCanary = NUM_CANARY_STACK;
 
     stk -> sizeStack = 0;
     stk -> capacity = 5;
@@ -71,7 +76,7 @@ error stackRealloc(myStack * stk , capchange prm)
     else
         stk -> capacity /= 2;
 
-    stk -> data = (elem_t *)(realloc(stk -> data, stk -> capacity * sizeof(elem_t));       //    stk -> data = (elem_t *)((char *)realloc(stk -> data - sizeof(canary_t), stk -> capacity * sizeof(elem_t) + 2 * sizeof(canary_t)) + sizeof(canary_t));
+    stk -> data = (elem_t *)((char *)realloc(stk -> data - sizeof(canary_t), stk -> capacity * sizeof(elem_t) + 2 * sizeof(canary_t)) + sizeof(canary_t));
 
 
     if(error err = stackCheck(stk))
