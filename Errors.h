@@ -6,6 +6,6 @@
 #include "Consts.h"
 
 error stackCheck(const myStack * stk);
-void stackDump(myStack * stk, const char * nameFile, const char * nameFunction, const size_t line);
+void stackDump(myStack * stk, const char * nameFile, const char * nameFunction, const size_t line, error err);
 
 #endif // ERRORS_H_INCLUDED
