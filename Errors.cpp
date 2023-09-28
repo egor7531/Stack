@@ -16,6 +16,8 @@ error stackCheck(const myStack * stk)
 
 void printError(error err)
 {
+    printf("status: ");
+
     for(size_t i = 1; i <= err; i <<= 1)
     {
         if(err & i)
@@ -46,7 +48,7 @@ void printError(error err)
             case ARRAY_OUT: printf("Array out of bounds\n");
                             break;
 
-            default: continue;
+            default: printf("Hash change\n");
                             break;
             }
         }
@@ -62,7 +64,7 @@ void stackDump(myStack * stk, const char * nameFile, const char * nameFunc, cons
     printf("data[%p]\n", stk -> data);
     printf("leftCanary = %llu\n", stk -> leftCanary);
     printf("rightCanary = %llu\n", stk -> rightCanary);
-
+    printf("hash = %llu\n", stk -> myHash);
     printf("err = %d\n", err);
     printError(err);
 
@@ -82,5 +84,4 @@ void stackDump(myStack * stk, const char * nameFile, const char * nameFunc, cons
     }
 
     printf("\n");
-
 }

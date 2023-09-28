@@ -19,7 +19,10 @@ int main()
     error err = stackCtor(&stk);
 
     if(err > 0)
+    {
         stackDump(&stk, __FILE__, __func__, __LINE__, err);
+        return err;
+    }
 
     while(true)
     {
@@ -41,8 +44,10 @@ int main()
 
             err = stackPush(&stk, num);
             if(err > 0)
+            {
                 stackDump(&stk, __FILE__, __func__, __LINE__, err);
-
+                return err;
+            }
         }
 
         else if(comand == 2)
@@ -51,16 +56,18 @@ int main()
 
             err = stackPop(&stk, &num);
             if(err > 0)
+            {
                 stackDump(&stk, __FILE__, __func__, __LINE__, err);
+                return err;
+            }
 
-            printf("num = %d\n", num);
+            printf("\nnum = %d\n", num);
         }
 
         else if(comand == 0)
             break;
 
-        stackDump(&stk, __FILE__, __func__, __LINE__, NO_ERR);
-
+        printStack(&stk);
     }
 
     return stackDtor(&stk);

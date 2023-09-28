@@ -59,6 +59,8 @@ error stackCtor(myStack * stk)
 
     err |= writeData(stk);
 
+    stk -> myHash = getHash(stk);
+
     return (error)err;
 }
 
@@ -105,6 +107,8 @@ error stackPush(myStack * stk, elem_t value)
 {
     int err = NO_ERR;
 
+    err |= hashCheck(stk);
+
     if(stk -> sizeStack == stk -> capacity)
         err |= stackRealloc(stk, INCREASE);
 
@@ -112,12 +116,16 @@ error stackPush(myStack * stk, elem_t value)
 
     err |= stackCheck(stk);
 
+    stk -> myHash = getHash(stk);
+
     return (error)err;
 }
 
 error stackPop(myStack * stk, elem_t * RetValue)
 {
     int err = NO_ERR;
+
+    err |= hashCheck(stk);
 
     * RetValue = stk -> data[--stk -> sizeStack];
 
@@ -128,5 +136,19 @@ error stackPop(myStack * stk, elem_t * RetValue)
 
     err |= stackCheck(stk);
 
+    stk -> myHash = getHash(stk);
+
     return (error)err;
 }
+
+void printStack(myStack * stk)
+{
+    printf("\n");
+
+    for(size_t i = 0; i < stk -> sizeStack; i++)
+        printf("[%d] = %d\n", i, stk -> data[i]);
+
+    printf("\n");
+}
+
+
