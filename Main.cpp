@@ -1,13 +1,9 @@
 #include <stdio.h>
 
 #include "Stack.h"
+#include "Consts.h"
 
-#define DEBUG
-
-//#define STACK_CTOR(stack) stackCtor((stack), #stack, __LINE__, __FILE__, __func__)
-
-
-int main()
+int main(int argc, char * argv[])
 {
 #ifdef DEBUG
 
@@ -16,13 +12,8 @@ int main()
     if(&stk == NULL)
         return NO_STACK;
 
-    error err = stackCtor(&stk);
-
-    if(err > 0)
-    {
-        stackDump(&stk, __FILE__, __func__, __LINE__, err);
-        return err;
-    }
+    if(checkFunc(&stk, STACK_CTOR(&stk)) > 0)
+        return -1;
 
     while(true)
     {
@@ -42,24 +33,16 @@ int main()
             printf("num = ");
             scanf("%d", &num);
 
-            err = stackPush(&stk, num);
-            if(err > 0)
-            {
-                stackDump(&stk, __FILE__, __func__, __LINE__, err);
-                return err;
-            }
+            if(checkFunc(&stk, stackPush(&stk, num)) > 0)
+                return -1;
         }
 
         else if(comand == 2)
         {
             int num = 0;
 
-            err = stackPop(&stk, &num);
-            if(err > 0)
-            {
-                stackDump(&stk, __FILE__, __func__, __LINE__, err);
-                return err;
-            }
+            if(checkFunc(&stk, stackPop(&stk, &num)) > 0)
+                return -1;
 
             printf("\nnum = %d\n", num);
         }

@@ -57,14 +57,19 @@ void printError(error err)
 
 void stackDump(myStack * stk, const char * nameFile, const char * nameFunc, const size_t line, error err)
 {
+    printf("'%s' from %s %s(%d)\n", stk -> nameStack, stk -> nameFile, stk -> nameFunc, stk -> line);
     printf("called from %s %s(%d)\n", nameFile, nameFunc, line);
     printf("stack[%p]\n", stk);
     printf("size = %d\n", stk -> sizeStack);
     printf("capacity = %d\n", stk -> capacity);
     printf("data[%p]\n", stk -> data);
+
+    #ifdef DEBUG
     printf("leftCanary = %llu\n", stk -> leftCanary);
     printf("rightCanary = %llu\n", stk -> rightCanary);
     printf("hash = %llu\n", stk -> myHash);
+    #endif
+
     printf("err = %d\n", err);
     printError(err);
 
@@ -85,3 +90,12 @@ void stackDump(myStack * stk, const char * nameFile, const char * nameFunc, cons
 
     printf("\n");
 }
+
+error checkFunc(myStack * stk, error err)
+{
+    if(err > 0)
+        stackDump(stk, __FILE__, __func__, __LINE__, err);
+
+    return err;
+}
+

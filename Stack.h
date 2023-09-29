@@ -3,8 +3,9 @@
 
 #include "Errors.h"
 #include "Hash.h"
+#include "Consts.h"
 
-error stackCtor(myStack * stk);
+error stackCtor(myStack * stk, const char * nameStack, size_t line, const char * nameFile, const char * nameFunc);
 error stackDtor(myStack * stk);
 error stackPush(myStack * stk, elem_t value);
 error stackPop(myStack * stk, elem_t * RetValue);

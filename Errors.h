@@ -7,5 +7,6 @@
 
 error stackCheck(const myStack * stk);
 void stackDump(myStack * stk, const char * nameFile, const char * nameFunction, const size_t line, error err);
+error checkFunc(myStack * stk, error err);
 
 #endif // ERRORS_H_INCLUDED

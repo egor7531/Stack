@@ -1,7 +1,13 @@
 #ifndef CONSTS_H_INCLUDED
 #define CONSTS_H_INCLUDED
 
-//#define STACK_DUMP(stack) stackDump((stack), __FILE__, __func__, __LINE__)
+#define DEBUG
+
+#ifdef DEBUG
+
+    #define STACK_CTOR(stack) stackCtor((stack), #stack, __LINE__, __FILE__, __func__)
+
+#endif
 
 typedef int elem_t;
 typedef unsigned long long canary_t;
@@ -9,16 +15,23 @@ typedef unsigned long long hash_t;
 
 struct myStack
 {
+    #ifdef DEBUG
     canary_t leftCanary = 0;
-    elem_t * data = 0;
+    #endif
+
+    elem_t * data = NULL;
     int sizeStack = 0;
     int capacity = 0;
-    /*char * nameStack;
-    int line = 0;
-    char * nameFile;
-    char * nameFunc;*/
+
+    #ifdef DEBUG
+    const char * nameStack = NULL;
+    size_t line = 0;
+    const char * nameFile = NULL;
+    const char * nameFunc = NULL;
+
     hash_t myHash = 0;
     canary_t rightCanary = 0;
+    #endif
 
 };
 
@@ -39,6 +52,7 @@ enum error
     ARRAY_OUT        = 1 << 7,
     HASH_ERR         = 1 << 8
 };
+
 enum capchange {INCREASE, DECREASE};
 
 #endif // CONSTS_H_INCLUDED

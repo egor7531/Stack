@@ -17,59 +17,71 @@ void pointerOffset(myStack * stk)
 
 error fillPoison(myStack * stk)
 {
-    int err = NO_ERR;
-
     for(int i = stk -> sizeStack; i < stk -> capacity; i++)
     {
         if(!(0 <= i && i< stk -> capacity))
-            err |= ARRAY_OUT;
+            return ARRAY_OUT;
 
         stk -> data[i] = POISON;
     }
 
-    return (error)err;
+    return NO_ERR;
 }
 error writeData(myStack * stk)
 {
-    int err = NO_ERR;
-
     stk -> data = (elem_t *)(calloc(countMemory(stk), sizeof(char)));
 
     if(stk -> data == NULL)
-        err |= NO_DATA;
+        return NO_DATA;
 
     pointerOffset(stk);
 
     ((canary_t *)(stk -> data))[-1] = NUM_CANARY_DATA;
     ((elem_t *)(stk -> data))[stk -> capacity] = NUM_CANARY_DATA;
 
-    err |= fillPoison(stk);
+    error err = NO_ERR;
 
-    return (error)err;
+    if((err = fillPoison(stk)) > 0)
+        return err;
+
+    return NO_ERR;
 }
 
-error stackCtor(myStack * stk)
+error stackCtor(myStack * stk, const char * nameStack, size_t line, const char * nameFile, const char * nameFunc)
 {
-    int err = NO_ERR;
+    #ifdef DEBUG
+        stk -> leftCanary = NUM_CANARY_STACK;
+        stk -> rightCanary = NUM_CANARY_STACK;
 
-    stk -> leftCanary = NUM_CANARY_STACK;
+        stk -> nameStack = nameStack;
+        stk -> line = line;
+        stk -> nameFile = nameFile;
+        stk -> nameFunc = nameFunc;
+    #endif
+
     stk -> sizeStack = 0;
     stk -> capacity = 5;
-    stk -> rightCanary = NUM_CANARY_STACK;
+    error err = NO_ERR;
 
-    err |= writeData(stk);
+    if((err = writeData(stk)) > 0)
+        return err;
 
-    stk -> myHash = getHash(stk);
-
-    return (error)err;
+    #ifdef DEBUG
+        stk -> myHash = getHash(stk);
+    #endif
+    return NO_ERR;
 }
 
 error stackDtor(myStack * stk)
 {
+    #ifdef DEBUG
     stk -> leftCanary = 0;
+    stk -> rightCanary = 0;
+    stk -> myHash = -1;
+    #endif
+
     stk -> sizeStack = -1;
     stk -> capacity = -1;
-    stk -> rightCanary = 0;
 
     free((char *)stk -> data - sizeof(canary_t));
 
@@ -79,8 +91,6 @@ error stackDtor(myStack * stk)
 
 error stackRealloc(myStack * stk , capchange prm)
 {
-    int err = NO_ERR;
-
     canary_t copyCanary = ((elem_t *)(stk -> data))[stk -> capacity];
 
     if(prm == INCREASE)
@@ -92,53 +102,67 @@ error stackRealloc(myStack * stk , capchange prm)
     stk -> data = (elem_t *)(realloc((char *)stk -> data - sizeof(canary_t), countMemory(stk)));
 
     if(stk -> data == NULL)
-        err |= NO_DATA;
+        return NO_DATA;
 
     pointerOffset(stk);
 
     ((elem_t *)(stk -> data))[stk -> capacity] = copyCanary;
 
-    err |= fillPoison(stk);
+    error err = NO_ERR;
 
-    return (error)err;
+    if((err = fillPoison(stk)) > 0)
+        return err;
+
+    return NO_ERR;
 }
 
 error stackPush(myStack * stk, elem_t value)
 {
-    int err = NO_ERR;
+    error err = NO_ERR;
 
-    err |= hashCheck(stk);
+    if((err = hashCheck(stk)) > 0)
+        return err;
 
     if(stk -> sizeStack == stk -> capacity)
-        err |= stackRealloc(stk, INCREASE);
+    {
+        if((err = stackRealloc(stk, INCREASE)) > 0)
+            return err;
+    }
 
     stk -> data[stk -> sizeStack++] = value;
 
-    err |= stackCheck(stk);
+    if((err = stackCheck(stk)) > 0)
+        return err;
 
     stk -> myHash = getHash(stk);
 
-    return (error)err;
+    return NO_ERR;
 }
 
 error stackPop(myStack * stk, elem_t * RetValue)
 {
-    int err = NO_ERR;
+    error err = NO_ERR;
 
-    err |= hashCheck(stk);
+    if((err = hashCheck(stk)) > 0)
+        return err;
 
     * RetValue = stk -> data[--stk -> sizeStack];
 
     stk -> data[stk -> sizeStack] = POISON;
 
     if(2 * stk -> sizeStack < stk -> capacity)
-        err |= stackRealloc(stk, DECREASE);
+    {
+        if((err = stackRealloc(stk, DECREASE)) > 0)
+            return err;
+    }
 
-    err |= stackCheck(stk);
+
+    if((err = stackCheck(stk)) > 0)
+        return err;
 
     stk -> myHash = getHash(stk);
 
-    return (error)err;
+    return NO_ERR;
 }
 
 void printStack(myStack * stk)
