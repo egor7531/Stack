@@ -1,19 +1,18 @@
 #include <stdio.h>
 
 #include "Stack.h"
-#include "Consts.h"
 
-int main(int argc, char * argv[])
+int main()
 {
-#ifdef DEBUG
-
     myStack stk = {};
 
     if(&stk == NULL)
         return NO_STACK;
 
-    if(checkFunc(&stk, STACK_CTOR(&stk)) > 0)
-        return -1;
+    stack_error_t err = CheckFunc(&stk, StackCtor(&stk));
+
+    if(err > 0)
+        return err;
 
     while(true)
     {
@@ -23,7 +22,7 @@ int main(int argc, char * argv[])
 
         int comand = 0;
 
-        printf("comand = ");
+        printf("command = ");
         scanf("%d", &comand);
 
         if(comand == 1)
@@ -33,16 +32,20 @@ int main(int argc, char * argv[])
             printf("num = ");
             scanf("%d", &num);
 
-            if(checkFunc(&stk, stackPush(&stk, num)) > 0)
-                return -1;
+            err = CheckFunc(&stk, StackPush(&stk, num));
+
+            if(err > 0)
+                return err;
         }
 
         else if(comand == 2)
         {
             int num = 0;
 
-            if(checkFunc(&stk, stackPop(&stk, &num)) > 0)
-                return -1;
+            err = CheckFunc(&stk, StackPop(&stk, &num));
+
+            if(err> 0)
+                return err;
 
             printf("\nnum = %d\n", num);
         }
@@ -50,11 +53,10 @@ int main(int argc, char * argv[])
         else if(comand == 0)
             break;
 
-        printStack(&stk);
+        StackDump(&stk, __FILE__, __func__, __LINE__, NO_ERR);
     }
 
-    return stackDtor(&stk);
+    StackDtor(&stk);
 
-#endif
-
+    return 0;
 }
