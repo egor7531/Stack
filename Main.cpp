@@ -1,18 +1,22 @@
 #include <stdio.h>
 
 #include "Stack.h"
+#include "StackDump.h"
 
 int main()
 {
     myStack stk = {};
 
     if(&stk == NULL)
-        return NO_STACK;
+        return STACK_NULL;
 
-    stack_error_t err = CheckFunc(&stk, StackCtor(&stk));
+    int err = StackCtor(&stk);
 
-    if(err > 0)
+    if(err != NO_ERR)
+    {
+        STACK_DUMP(&stk, err);
         return err;
+    }
 
     while(true)
     {
@@ -27,33 +31,39 @@ int main()
 
         if(comand == 1)
         {
-            int num = 0;
+            elem_t num = 0;
 
             printf("num = ");
-            scanf("%d", &num);
+            scanf("%lf", &num);
 
-            err = CheckFunc(&stk, StackPush(&stk, num));
+            err = StackPush(&stk, num);
 
-            if(err > 0)
+            if(err != NO_ERR)
+            {
+                STACK_DUMP(&stk, err);
                 return err;
+            }
         }
 
         else if(comand == 2)
         {
-            int num = 0;
+            elem_t num = 0;
 
-            err = CheckFunc(&stk, StackPop(&stk, &num));
+            err = StackPop(&stk, &num);
 
-            if(err> 0)
+            if(err != NO_ERR)
+            {
+                STACK_DUMP(&stk, err);
                 return err;
+            }
 
-            printf("\nnum = %d\n", num);
+            printf("\nnum = %.2ex\n", num);
         }
 
         else if(comand == 0)
             break;
 
-        StackDump(&stk, __FILE__, __func__, __LINE__, NO_ERR);
+        STACK_DUMP(&stk, err);
     }
 
     StackDtor(&stk);
