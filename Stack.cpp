@@ -279,9 +279,16 @@ int StackPop(myStack * stk, elem_t * retValue)
         return err;
     }
 
-    --stk -> sizeStack;
+    --stk->sizeStack;
 
-    *retValue = stk->data[stk -> sizeStack];
+    if(stk->sizeStack < 0)
+    {
+        err = SIZE_NEGATIVE;
+        STACK_DUMP(stk, err);
+        return err;
+    }
+
+    *retValue = stk->data[stk->sizeStack];
 
     stk->data[stk->sizeStack] = POISON;
 

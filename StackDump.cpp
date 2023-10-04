@@ -65,9 +65,9 @@ void StackDump(myStack * stk, const char * nameFile, const char * nameFunc, cons
     printf("%p <" SPEC_CANARY ">\n", ((canary_t *)(stk -> data)) + -1, ((canary_t *)(stk -> data))[-1]);
     #endif
 
-    for(size_t i = 0; i < (size_t)stk -> capacity; i++)
+    for(int i = 0; i < stk -> capacity; i++)
     {
-        assert(i < (size_t)stk -> capacity);
+        assert(0 <= i && i < stk -> capacity);
 
        if(stk -> data[i] == POISON)
             printf("%p [%d] = " SPEC_POSION "(POISON)\n", stk -> data + i, i, stk -> data[i]);
