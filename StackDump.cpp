@@ -4,10 +4,10 @@
 #include "StackDump.h"
 #include "Stack.h"
 
-#define DATA_TYPE     "%0.2lf"
-#define POSION_TYPE   "%0.2lf"
-#define CANARY_TYPE   "%x"
-#define HASH_TYPE     "%llu"
+#define SPEC_DATA     "%0.2lf"
+#define SPEC_POSION   "%0.2lf"
+#define SPEC_CANARY   "%x"
+#define SPEC_HASH     "%llu"
 
 void PrintError(int err)
 {
@@ -54,15 +54,15 @@ void StackDump(myStack * stk, const char * nameFile, const char * nameFunc, cons
     printf("data[%p]\n", stk->data);
 
     #ifdef STK_PROTECT
-    printf("leftCanary = " CANARY_TYPE "\n", stk->leftCanary);
-    printf("rightCanary = " CANARY_TYPE "\n", stk->rightCanary);
-    printf("hash = " HASH_TYPE "\n", stk->hash);
+    printf("leftCanary = " SPEC_CANARY "\n", stk->leftCanary);
+    printf("rightCanary = " SPEC_CANARY "\n", stk->rightCanary);
+    printf("hash = " SPEC_HASH "\n", stk->hash);
     #endif
 
     PrintError(err);
 
     #ifdef STK_PROTECT
-    printf("%p <" CANARY_TYPE ">\n", ((canary_t *)(stk -> data)) + -1, ((canary_t *)(stk -> data))[-1]);
+    printf("%p <" SPEC_CANARY ">\n", ((canary_t *)(stk -> data)) + -1, ((canary_t *)(stk -> data))[-1]);
     #endif
 
     for(size_t i = 0; i < (size_t)stk -> capacity; i++)
@@ -70,14 +70,14 @@ void StackDump(myStack * stk, const char * nameFile, const char * nameFunc, cons
         assert(i < (size_t)stk -> capacity);
 
        if(stk -> data[i] == POISON)
-            printf("%p [%d] = " POSION_TYPE "(POISON)\n", stk -> data + i, i, stk -> data[i]);
+            printf("%p [%d] = " SPEC_POSION "(POISON)\n", stk -> data + i, i, stk -> data[i]);
 
         else
-            printf("%p *[%d] = " DATA_TYPE "\n", stk -> data + i, i, stk -> data[i]);
+            printf("%p *[%d] = " SPEC_DATA "\n", stk -> data + i, i, stk -> data[i]);
     }
 
     #ifdef STK_PROTECT
-    printf("%p <" CANARY_TYPE ">\n", stk -> data + stk -> capacity, stk -> data[stk -> capacity]);
+    printf("%p <" SPEC_CANARY ">\n", stk -> data + stk -> capacity, stk -> data[stk -> capacity]);
     #endif
 
     printf("\n");

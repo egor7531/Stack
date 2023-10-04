@@ -7,16 +7,12 @@ int main()
 {
     myStack stk = {};
 
+    int err = NO_ERR;
+
     if(&stk == NULL)
         return STACK_NULL;
 
-    int err = StackCtor(&stk);
-
-    if(err != NO_ERR)
-    {
-        STACK_DUMP(&stk, err);
-        return err;
-    }
+    StackCtor(&stk);
 
     while(true)
     {
@@ -36,28 +32,16 @@ int main()
             printf("num = ");
             scanf("%lf", &num);
 
-            err = StackPush(&stk, num);
-
-            if(err != NO_ERR)
-            {
-                STACK_DUMP(&stk, err);
-                return err;
-            }
+            StackPush(&stk, num);
         }
 
         else if(comand == 2)
         {
             elem_t num = 0;
 
-            err = StackPop(&stk, &num);
+            StackPop(&stk, &num);
 
-            if(err != NO_ERR)
-            {
-                STACK_DUMP(&stk, err);
-                return err;
-            }
-
-            printf("\nnum = %.2ex\n", num);
+            printf("\n" "num = %.2ex\n", num);
         }
 
         else if(comand == 0)

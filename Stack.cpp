@@ -66,9 +66,14 @@ int StackCheck(myStack * stk)
     if(stk->sizeStack < 0)                               err |= SIZE_NEGATIVE;
 
     #ifdef STK_PROTECT
-    if(stk->leftCanary != NUM_CANARY_STACK || stk->rightCanary != NUM_CANARY_STACK)                                                   err |= CANARY_ERR_STK;
-    if(((canary_t *)stk->data)[-1] != NUM_CANARY_DATA || *(canary_t *)(((elem_t *)(stk->data)) + stk->capacity) != NUM_CANARY_DATA)   err |= CANARY_ERR_DATA;
-    if(HashCheck(stk))                                                                                                                err |= HASH_ERR;
+    if(stk->leftCanary != NUM_CANARY_STACK
+    || stk->rightCanary != NUM_CANARY_STACK)
+                                                         err |= CANARY_ERR_STK;
+
+    if(((canary_t *)stk->data)[-1] != NUM_CANARY_DATA
+    || *(canary_t *)(((elem_t *)(stk->data)) + stk->capacity) != NUM_CANARY_DATA)
+                                                         err |= CANARY_ERR_DATA;
+    if(HashCheck(stk))                                   err |= HASH_ERR;
     #endif
 
     return err;
@@ -114,8 +119,14 @@ void FillPoison(myStack * stk)
 
 int StackCtor(myStack * stk)
 {
+    int err = NO_ERR;
+
     if(stk == NULL)
-        return STACK_NULL;
+    {
+        err = STACK_NULL;
+        STACK_DUMP(stk, err);
+        return err;
+    }
 
     #ifdef STK_PROTECT
     stk->leftCanary  = NUM_CANARY_STACK;
@@ -128,7 +139,11 @@ int StackCtor(myStack * stk)
     stk->data = (elem_t *)(calloc(GetDataSize(stk), sizeof(char)));
 
     if(stk->data == NULL)
-        return DATA_NULL;
+    {
+        err = DATA_NULL;
+        STACK_DUMP(stk, err);
+        return err;
+    }
 
     #ifdef STK_PROTECT
     stk->data = (elem_t *)((char *)stk->data + sizeof(canary_t));
@@ -146,7 +161,21 @@ int StackCtor(myStack * stk)
 
 int StackDtor(myStack * stk)
 {
-    assert(stk != NULL);
+    int err = NO_ERR;
+
+    if(stk == NULL)
+    {
+        err = STACK_NULL;
+        STACK_DUMP(stk, err);
+        return err;
+    }
+
+    if(stk->data == NULL)
+    {
+        err = DATA_NULL;
+        STACK_DUMP(stk, err);
+        return err;
+    }
 
     #ifdef STK_PROTECT
     stk->leftCanary = -1;
@@ -187,8 +216,12 @@ int StackReallocIfNeed(myStack * stk)
 
     stk->data = (elem_t *)(realloc(stk->data, GetDataSize(stk)));
 
-    if(stk -> data == NULL)
-        return DATA_NULL;
+    if(stk->data == NULL)
+    {
+        int err = DATA_NULL;
+        STACK_DUMP(stk, err);
+        return err;
+    }
 
     #ifdef STK_PROTECT
     stk->data = (elem_t *)((char *)stk->data + sizeof(canary_t));
@@ -236,7 +269,7 @@ int StackPop(myStack * stk, elem_t * retValue)
 {
     assert(stk         != NULL);
     assert(stk->data   != NULL);
-    assert(retValue    != NULL);
+    assert(retValue    != NULL);    // ???
 
     int err = StackCheck(stk);
 
@@ -247,12 +280,6 @@ int StackPop(myStack * stk, elem_t * retValue)
     }
 
     --stk -> sizeStack;
-
-    if(stk->sizeStack < 0)
-    {
-        STACK_DUMP(stk, err);
-        return SIZE_NEGATIVE;
-    }
 
     *retValue = stk->data[stk -> sizeStack];
 
