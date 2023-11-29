@@ -4,12 +4,12 @@
 #include "StackDump.h"
 #include "Stack.h"
 
-#define SPEC_DATA     "%0.2lf"
-#define SPEC_POSION   "%0.2lf"
+#define SPEC_DATA     "%d"
+#define SPEC_POSION   "%d"
 #define SPEC_CANARY   "%x"
 #define SPEC_HASH     "%llu"
 
-void PrintError(int err)
+void print_errors(const int err)
 {
     printf("status: ");
 
@@ -41,10 +41,10 @@ void PrintError(int err)
         printf("Hash change\n");
 }
 
-void StackDump(myStack * stk, const char * nameFile, const char * nameFunc, const size_t line, int err)
+void stack_dump(const Stack * stk, const char * nameFile, const char * nameFunc, const size_t line)
 {
-    assert(stk         != NULL);
-    assert(stk -> data != NULL);
+    assert(stk       != NULL);
+    assert(stk->data != NULL);
 
     printf("\n");
     printf("called from %s %s(%d)\n", nameFile, nameFunc, line);
@@ -57,27 +57,20 @@ void StackDump(myStack * stk, const char * nameFile, const char * nameFunc, cons
     printf("leftCanary = " SPEC_CANARY "\n", stk->leftCanary);
     printf("rightCanary = " SPEC_CANARY "\n", stk->rightCanary);
     printf("hash = " SPEC_HASH "\n", stk->hash);
+    print_errors(stk->errors);
+    printf("%p <" SPEC_CANARY ">\n", ((canary_t *)(stk->data)) + -1, ((canary_t *)(stk->data))[-1]);
     #endif
 
-    PrintError(err);
-
-    #ifdef STK_PROTECT
-    printf("%p <" SPEC_CANARY ">\n", ((canary_t *)(stk -> data)) + -1, ((canary_t *)(stk -> data))[-1]);
-    #endif
-
-    for(int i = 0; i < stk -> capacity; i++)
+    for(int i = 0; i < stk->capacity; i++)
     {
-        assert(0 <= i && i < stk -> capacity);
-
        if(stk -> data[i] == POISON)
-            printf("%p [%d] = " SPEC_POSION "(POISON)\n", stk -> data + i, i, stk -> data[i]);
-
+            printf("%p [%d] = " SPEC_POSION "(POISON)\n", stk->data + i, i, stk->data[i]);
         else
-            printf("%p *[%d] = " SPEC_DATA "\n", stk -> data + i, i, stk -> data[i]);
+            printf("%p *[%d] = " SPEC_DATA "\n", stk->data + i, i, stk->data[i]);
     }
 
     #ifdef STK_PROTECT
-    printf("%p <" SPEC_CANARY ">\n", stk -> data + stk -> capacity, stk -> data[stk -> capacity]);
+    printf("%p <" SPEC_CANARY ">\n", stk->data + stk->capacity, stk->data[stk -> capacity]);
     #endif
 
     printf("\n");

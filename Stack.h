@@ -1,10 +1,9 @@
 #ifndef STACK_H_INCLUDED
 #define STACK_H_INCLUDED
 
-#define DEBUG
 #define STK_PROTECT
 
-typedef double elem_t;
+typedef int elem_t;
 
 #ifdef STK_PROTECT
 typedef unsigned long long hash_t;
@@ -13,7 +12,7 @@ typedef unsigned long long canary_t;
 
 const elem_t POISON = -777;
 
-struct myStack
+struct Stack
 {
     #ifdef STK_PROTECT
     canary_t leftCanary;
@@ -24,6 +23,7 @@ struct myStack
     int capacity;
 
     #ifdef STK_PROTECT
+    int errors;
     hash_t hash;
     canary_t rightCanary;
     #endif
@@ -43,9 +43,9 @@ enum stack_error_t
     HASH_ERR            = 1 << 7
 };
 
-int StackCtor(myStack * stk);
-int StackDtor(myStack * stk);
-int StackPush(myStack * stk, elem_t value);
-int StackPop(myStack * stk, elem_t * RetValue);
+int stack_ctor(Stack * stk);
+int stack_dtor(Stack * stk);
+int stack_push(Stack * stk, elem_t value);
+int stack_pop(Stack * stk, elem_t * retValue);
 
 #endif // STACK_H_INCLUDED

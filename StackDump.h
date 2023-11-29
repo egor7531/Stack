@@ -3,8 +3,9 @@
 
 #include "Stack.h"
 
-#define STACK_DUMP(stk, err) StackDump(stk, __FILE__, __func__, __LINE__, err)
+#define STACK_DUMP(stk) stack_dump(stk, __FILE__, __func__, __LINE__)
 
-void StackDump(myStack * stk, const char * nameFile, const char * nameFunc, const size_t line, int err);
+void stack_dump(const Stack * stk, const char * nameFile,
+                const char * nameFunc, const size_t line);
 
 #endif // STACKDUMP_H_INCLUDED

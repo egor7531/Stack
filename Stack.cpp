@@ -15,7 +15,7 @@ const canary_t NUM_CANARY_DATA  = 0xBADCAFE;
 const int initialCapacity = 4;
 
 #ifdef STK_PROTECT
-hash_t GetValueHash(const myStack * stk)
+hash_t get_value_hash(const Stack * stk)
 {
     assert(stk       != NULL);
     assert(stk->data != NULL);
@@ -25,24 +25,16 @@ hash_t GetValueHash(const myStack * stk)
 
     hash_t hash = initialValue;
 
-    for (int i = 0; i < sizeof(myStack); i++)
-    {
-        assert(0 <= i && i < sizeof(myStack));
-
+    for (int i = 0; i < sizeof(Stack); i++)
         hash = coeffChange * hash + *((char *)(stk) + i);
-    }
 
     for (int i = 0; i < stk->capacity; i++)
-    {
-        assert(0 <= i && i < sizeof(myStack));
-
         hash = coeffChange * hash + *((char *)(stk->data) + i);
-    }
 
     return hash;
 }
 
-bool HashCheck(myStack * stk)
+bool hash_check(Stack * stk)
 {
     assert(stk != NULL);
 
@@ -50,37 +42,39 @@ bool HashCheck(myStack * stk)
 
     stk->hash = 0;
 
-    return hashRef != GetValueHash(stk);
+    return hashRef != get_value_hash(stk);
 }
 #endif
 
-int StackCheck(myStack * stk)
+int stack_check(Stack * stk)
 {
     int err = NO_ERR;
 
-    if(stk == NULL)                                      return STACK_NULL;
-    if(stk->data == NULL)                                return DATA_NULL;
+    if(stk == NULL)                                     return STACK_NULL;
+    if(stk->data == NULL)                               return stk->errors = DATA_NULL;
 
-    if(stk->sizeStack > stk->capacity)                   err |= SIZE_LARGE_CAPACITY;
-    if(stk->capacity <= 0)                               err |= CAPACITY_ZERO;
-    if(stk->sizeStack < 0)                               err |= SIZE_NEGATIVE;
+    if(stk->sizeStack > stk->capacity)                  err |= SIZE_LARGE_CAPACITY;
+    if(stk->capacity <= 0)                              err |= CAPACITY_ZERO;
+    if(stk->sizeStack < 0)                              err |= SIZE_NEGATIVE;
 
     #ifdef STK_PROTECT
     if(stk->leftCanary != NUM_CANARY_STACK
     || stk->rightCanary != NUM_CANARY_STACK)
-                                                         err |= CANARY_ERR_STK;
+                                                        err |= CANARY_ERR_STK;
 
     if(((canary_t *)stk->data)[-1] != NUM_CANARY_DATA
     || *(canary_t *)(((elem_t *)(stk->data)) + stk->capacity) != NUM_CANARY_DATA)
-                                                         err |= CANARY_ERR_DATA;
-    if(HashCheck(stk))                                   err |= HASH_ERR;
+                                                        err |= CANARY_ERR_DATA;
+    if(hash_check(stk))                                 err |= HASH_ERR;
     #endif
 
-    return err;
+    stk->errors |= err;
+
+    return stk->errors;
 }
 
 #ifdef STK_PROTECT
-void SetCanary(myStack * stk)
+void set_canary(Stack * stk)
 {
     assert(stk         != NULL);
     assert(stk -> data != NULL);
@@ -90,7 +84,7 @@ void SetCanary(myStack * stk)
 }
 #endif
 
-size_t GetDataSize(myStack * stk)
+size_t get_data_size(Stack * stk)
 {
     assert(stk != NULL);
 
@@ -103,7 +97,7 @@ size_t GetDataSize(myStack * stk)
     return stk->capacity * sizeof(elem_t) + sizeCanary;
 }
 
-void FillPoison(myStack * stk)
+void fill_poison(Stack * stk)
 {
     assert(stk       != NULL);
     assert(stk->data != NULL);
@@ -117,15 +111,13 @@ void FillPoison(myStack * stk)
 
 }
 
-int StackCtor(myStack * stk)
+int stack_ctor(Stack * stk)
 {
-    int err = NO_ERR;
-
     if(stk == NULL)
     {
-        err = STACK_NULL;
-        STACK_DUMP(stk, err);
-        return err;
+        STACK_DUMP(stk);
+        stack_dtor(stk);
+        return STACK_NULL;
     }
 
     #ifdef STK_PROTECT
@@ -136,67 +128,44 @@ int StackCtor(myStack * stk)
     stk->sizeStack = 0;
     stk->capacity  = initialCapacity;
 
-    stk->data = (elem_t *)(calloc(GetDataSize(stk), sizeof(char)));
+    stk->data = (elem_t *)(calloc(get_data_size(stk), sizeof(char)));
 
     if(stk->data == NULL)
     {
-        err = DATA_NULL;
-        STACK_DUMP(stk, err);
-        return err;
+        stk->errors |= DATA_NULL;
+        STACK_DUMP(stk);
+        stack_dtor(stk);
+        return stk->errors;
     }
 
     #ifdef STK_PROTECT
     stk->data = (elem_t *)((char *)stk->data + sizeof(canary_t));
     #endif
 
-    FillPoison(stk);
+    fill_poison(stk);
 
     #ifdef STK_PROTECT
-    SetCanary(stk);
-    stk->hash = GetValueHash(stk);
+    set_canary(stk);
+    stk->hash = get_value_hash(stk);
     #endif
 
     return NO_ERR;
 }
 
-int StackDtor(myStack * stk)
+int stack_dtor(Stack * stk)
 {
-    int err = NO_ERR;
+    assert(stk != NULL);
 
-    if(stk == NULL)
-    {
-        err = STACK_NULL;
-        STACK_DUMP(stk, err);
-        return err;
-    }
-
-    if(stk->data == NULL)
-    {
-        err = DATA_NULL;
-        STACK_DUMP(stk, err);
-        return err;
-    }
-
-    #ifdef STK_PROTECT
-    stk->leftCanary = -1;
-    stk->rightCanary = -1;
-    stk->hash = -1;
-    #endif
-
-    stk->sizeStack = -1;
-    stk->capacity = -1;
-
-    #ifdef STK_PROTECT
     stk->data = (elem_t *)((char *)stk->data - sizeof(canary_t));
-    #endif
-
     free(stk->data);
+    stk->data = NULL;
+    stk = NULL;
 
     return NO_ERR;
 }
 
 
-int StackReallocIfNeed(myStack * stk)
+int stack_realloc_if_needed(Stack * stk)
 {
     assert(stk       != NULL);
     assert(stk->data != NULL);
@@ -204,7 +173,7 @@ int StackReallocIfNeed(myStack * stk)
     if(stk->sizeStack == stk->capacity)
         stk->capacity *= coeffIncrease;
 
-    else if(coeffDecrease * stk->sizeStack  < stk->capacity)
+    else if(coeffDecrease * stk->sizeStack  < stk->capacity && stk->capacity > initialCapacity)
         stk->capacity /= coeffDecrease;
 
     else
@@ -214,68 +183,67 @@ int StackReallocIfNeed(myStack * stk)
     stk->data = (elem_t *)((char *)stk->data - sizeof(canary_t));
     #endif
 
-    stk->data = (elem_t *)(realloc(stk->data, GetDataSize(stk)));
+    stk->data = (elem_t *)(realloc(stk->data, get_data_size(stk)));
 
     if(stk->data == NULL)
     {
-        int err = DATA_NULL;
-        STACK_DUMP(stk, err);
-        return err;
+        stk->errors |= DATA_NULL;
+        STACK_DUMP(stk);
+        stack_dtor(stk);
+        return stk->errors;
     }
 
     #ifdef STK_PROTECT
     stk->data = (elem_t *)((char *)stk->data + sizeof(canary_t));
     #endif
 
-    FillPoison(stk);
+    fill_poison(stk);
 
     #ifdef STK_PROTECT
-    SetCanary(stk);
+    set_canary(stk);
     #endif
 
     return NO_ERR;
 }
 
-int StackPush(myStack * stk, elem_t value)
+int stack_push(Stack * stk, elem_t value)
 {
-    int err = StackCheck(stk);
-
+    int err = stack_check(stk);
+    if(stk != NULL)
+        stk->errors |= err;
     if(err != NO_ERR)
     {
-        STACK_DUMP(stk, err);
+        STACK_DUMP(stk);
+        stack_dtor(stk);
         return err;
     }
 
-    err = StackReallocIfNeed(stk);
-
-    if(err != NO_ERR)
-    {
-        STACK_DUMP(stk, err);
-        return err;
-    }
+    stack_realloc_if_needed(stk);
 
     stk->data[stk->sizeStack] = value;
 
     stk->sizeStack++;
 
     #ifdef STK_PROTECT
-    stk->hash = GetValueHash(stk);
+    stk->hash = get_value_hash(stk);
     #endif
 
     return NO_ERR;
 }
 
-int StackPop(myStack * stk, elem_t * retValue)
+int stack_pop(Stack * stk, elem_t * retValue)
 {
     assert(stk         != NULL);
     assert(stk->data   != NULL);
     assert(retValue    != NULL);    // ???
 
-    int err = StackCheck(stk);
-
+    int err = stack_check(stk);
+    if(stk != NULL)
+        stk->errors |= err;
     if(err != NO_ERR)
     {
-        STACK_DUMP(stk, err);
+        STACK_DUMP(stk);
+        stack_dtor(stk);
         return err;
     }
 
@@ -283,8 +251,9 @@ int StackPop(myStack * stk, elem_t * retValue)
 
     if(stk->sizeStack < 0)
     {
-        err = SIZE_NEGATIVE;
-        STACK_DUMP(stk, err);
+        stk->errors |= SIZE_NEGATIVE;
+        STACK_DUMP(stk);
+        stack_dtor(stk);
         return err;
     }
 
@@ -292,22 +261,11 @@ int StackPop(myStack * stk, elem_t * retValue)
 
     stk->data[stk->sizeStack] = POISON;
 
-    err = StackReallocIfNeed(stk);
-
-    if(err != NO_ERR)
-    {
-        STACK_DUMP(stk, err);
-        return err;
-    }
+    stack_realloc_if_needed(stk);
 
     #ifdef STK_PROTECT
-    stk->hash = GetValueHash(stk);
+    stk->hash = get_value_hash(stk);
     #endif
 
     return NO_ERR;
-}
-
-size_t GetSizeStack()
-{
-    return sizeof(myStack);
 }
