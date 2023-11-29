@@ -6,13 +6,12 @@
 
 const int coeffIncrease = 2;
 const int coeffDecrease = 2;
+const int initialCapacity = 4;
 
 #ifdef STK_PROTECT
 const canary_t NUM_CANARY_STACK = 0xDEDABABA;
 const canary_t NUM_CANARY_DATA  = 0xBADCAFE;
 #endif
-
-const int initialCapacity = 4;
 
 #ifdef STK_PROTECT
 hash_t get_value_hash(const Stack * stk)
@@ -46,7 +45,7 @@ bool hash_check(Stack * stk)
 }
 #endif
 
-int stack_check(Stack * stk)
+int stack_verificator(Stack * stk)
 {
     int err = NO_ERR;
 
@@ -103,12 +102,7 @@ void fill_poison(Stack * stk)
     assert(stk->data != NULL);
 
     for(int i = stk->sizeStack; i < stk->capacity; i++)
-    {
-        assert(stk->sizeStack <= i && i < stk->capacity);
-
         stk->data[i] = POISON;
-    }
-
 }
 
 int stack_ctor(Stack * stk)
@@ -154,9 +148,10 @@ int stack_ctor(Stack * stk)
 
 int stack_dtor(Stack * stk)
 {
-    assert(stk != NULL);
-
+    #ifdef STK_PROTECT
     stk->data = (elem_t *)((char *)stk->data - sizeof(canary_t));
+    #endif
+
     free(stk->data);
     stk->data = NULL;
     stk = NULL;
@@ -208,7 +203,7 @@ int stack_realloc_if_needed(Stack * stk)
 
 int stack_push(Stack * stk, elem_t value)
 {
-    int err = stack_check(stk);
+    int err = stack_verificator(stk);
     if(stk != NULL)
         stk->errors |= err;
     if(err != NO_ERR)
@@ -237,7 +232,7 @@ int stack_pop(Stack * stk, elem_t * retValue)
     assert(stk->data   != NULL);
     assert(retValue    != NULL);    // ???
 
-    int err = stack_check(stk);
+    int err = stack_verificator(stk);
     if(stk != NULL)
         stk->errors |= err;
     if(err != NO_ERR)

@@ -21,9 +21,9 @@ struct Stack
     elem_t * data;
     int sizeStack;
     int capacity;
+    int errors;
 
     #ifdef STK_PROTECT
-    int errors;
     hash_t hash;
     canary_t rightCanary;
     #endif
