@@ -9,57 +9,53 @@
 #define SPEC_CANARY   "%x"
 #define SPEC_HASH     "%llu"
 
-void print_errors(const int err)
+void stack_print_errors(const int err)
 {
     printf("status: ");
 
     if(err == NO_ERR)
         printf("No error\n");
-
     if(err & STACK_NULL)
         printf("Pointer on stack NULL\n");
-
     if(err & DATA_NULL)
         printf("Pointer on data NULL\n");
-
     if(err & SIZE_LARGE_CAPACITY)
         printf("Size > Capacity\n");
-
     if(err & CAPACITY_ZERO)
         printf("Capacity is negative or zero\n");
-
     if(err & SIZE_NEGATIVE)
         printf("Size is negative\n");
-
     if(err & CANARY_ERR_STK)
         printf("Value of Canary in struct change\n");
-
     if(err & CANARY_ERR_DATA)
         printf("Value of Canary in array of Data change\n");
-
     if(err & HASH_ERR)
         printf("Hash change\n");
 }
 
 void stack_dump(const Stack * stk, const char * nameFile, const char * nameFunc, const size_t line)
 {
-    assert(stk       != NULL);
-    assert(stk->data != NULL);
-
     printf("\n");
     printf("called from %s %s(%d)\n", nameFile, nameFunc, line);
     printf("stack[%p]\n", stk);
+
+    if(stk == NULL)
+        return;
+
     printf("size = %d\n", stk->sizeStack);
     printf("capacity = %d\n", stk->capacity);
     printf("data[%p]\n", stk->data);
+    stack_print_errors(stk->errors);
 
     #ifdef STK_PROTECT
     printf("leftCanary = " SPEC_CANARY "\n", stk->leftCanary);
     printf("rightCanary = " SPEC_CANARY "\n", stk->rightCanary);
     printf("hash = " SPEC_HASH "\n", stk->hash);
-    print_errors(stk->errors);
     printf("%p <" SPEC_CANARY ">\n", ((canary_t *)(stk->data)) + -1, ((canary_t *)(stk->data))[-1]);
     #endif
+
+    if(stk->data == NULL)
+        return;
 
     for(int i = 0; i < stk->capacity; i++)
     {

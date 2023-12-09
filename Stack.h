@@ -43,7 +43,7 @@ enum stack_error_t
     HASH_ERR            = 1 << 7
 };
 
-int stack_ctor(Stack * stk);
+Stack* stack_ctor();
 int stack_dtor(Stack * stk);
 int stack_push(Stack * stk, elem_t value);
 int stack_pop(Stack * stk, elem_t * retValue);

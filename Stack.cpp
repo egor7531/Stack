@@ -105,13 +105,14 @@ void fill_poison(Stack * stk)
         stk->data[i] = POISON;
 }
 
-int stack_ctor(Stack * stk)
+Stack* stack_ctor()
 {
+    Stack* stk = (Stack*)calloc(1, sizeof(Stack));
     if(stk == NULL)
     {
         STACK_DUMP(stk);
         stack_dtor(stk);
-        return STACK_NULL;
+        return NULL;
     }
 
     #ifdef STK_PROTECT
@@ -129,7 +130,7 @@ int stack_ctor(Stack * stk)
         stk->errors |= DATA_NULL;
         STACK_DUMP(stk);
         stack_dtor(stk);
-        return stk->errors;
+        return NULL;
     }
 
     #ifdef STK_PROTECT
@@ -143,7 +144,7 @@ int stack_ctor(Stack * stk)
     stk->hash = get_value_hash(stk);
     #endif
 
-    return NO_ERR;
+    return stk;
 }
 
 int stack_dtor(Stack * stk)
